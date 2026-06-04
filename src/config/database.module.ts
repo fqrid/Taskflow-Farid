@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
+        const dbHost = configService.get<string>('DB_HOST') ?? 'localhost';
         const dbPort = Number(configService.get<string>('DB_PORT') ?? 3306);
         const dbUsername =
           configService.get<string>('DB_USERNAME') ??
@@ -17,10 +18,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
           configService.get<string>('DB_DATABASE') ??
           configService.getOrThrow<string>('DB_NAME');
         const nodeEnv = configService.get<string>('NODE_ENV') ?? 'development';
+        const isLocalhost = dbHost === 'localhost' || dbHost === '127.0.0.1';
 
         return {
           type: 'mysql',
-          host: configService.get<string>('DB_HOST') ?? 'localhost',
+          host: dbHost,
           port: Number.isNaN(dbPort) ? 3306 : dbPort,
           username: dbUsername,
           password: configService.getOrThrow<string>('DB_PASSWORD'),
@@ -29,6 +31,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
           // En desarrollo, sincronizar automáticamente. En producción, usar migraciones
           synchronize: nodeEnv === 'development',
           logging: nodeEnv === 'development',
+          ssl: isLocalhost ? undefined : { rejectUnauthorized: false },
         };
       },
     }),
