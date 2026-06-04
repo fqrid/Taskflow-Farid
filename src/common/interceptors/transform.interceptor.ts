@@ -29,7 +29,10 @@ export class TransformInterceptor<T> implements NestInterceptor<
       .getRequest<{ path?: string; url?: string }>();
     const requestPath = request?.path ?? request?.url ?? '';
     const isSwaggerRoute =
-      requestPath === '/docs' || requestPath.startsWith('/docs/');
+      requestPath === '/api' ||
+      requestPath.startsWith('/api/') ||
+      requestPath === '/docs' ||
+      requestPath.startsWith('/docs/');
 
     if (isSwaggerRoute) {
       return next.handle();
